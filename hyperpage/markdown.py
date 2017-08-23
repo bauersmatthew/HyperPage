@@ -1,46 +1,36 @@
 """An interface for generic markdown parsing."""
+from mistune import markdown
+from html.parser import HTMLParser
+from html import unescape
 from collections import namedtuple
-from enum import Enum
 
-class Attr(Enum):
-    """An inline text attribute."""
-    NORMAL, LINK, EMPH1, EMPH2, CODE = range(5)
+HTMLDataNT = namedtuple('HTMLData', ('data',))
+HTMLData = lambda d: HTMLDataNT(unescape(d))
+HTMLNode = namedtuple('HTMLNode', ('tag', 'attrs', 'data'))
+# Object model: tree of HTMLNodes with each branch ending at a HTMLData.
 
-# A snippet of text.
-# 'text' is a string for all attributes except LINK, where it is a tuple of two
-# strings.
-Snippet = namedtuple('Snippet', ('attr', 'text'))
-
-class BlockType(Enum):
-    """A blocked text type."""
-    PAR, QUOTE, CODE, \
-        H1, H2, H3, H4, H5, H6, \
-        ULIST, OLIST, LISTITEM, \
-        TABLE, TABLECOL, TABLEROW \
-        = range(15)
-
-# A block of text.
-# Contents is...
-# PAR: A tuple of snippets.
-# QUOTE: A tuple of blocks.
-# CODE: A tuple of strings (lines).
-# H*: A tuple of snippets.
-# *LIST: A tuple of LISTITEMs
-# LISTITEM: A tuple of blocks.
-# TABLE: A tuple of TABLECOLs
-# TABLECOL: A tuple of TABLEROWs
-# TABLEROW: A tuple of snippets and statics.
-Block = namedtuple('Block', ('type', 'contents'))
-
-class StaticType(Enum):
-    """A static element type."""
-    HRULE, = range(1)
-
-# A static element.
-Static = namedtuple('Static', 'type')
+class HTMLTreeLoader(HTMLParser):
+    """Parser that fills an HTML tree."""
+    def __init__(self, root):
+        """Initialize the parser with a root node to grow."""
+        super().__init__()
+        self.stack = [root]
+    def handle_starttag(self, tag, attrs):
+        new_node = HTMLNode(tag, attrs, [])
+        self.stack[-1].data.append(new_node)
+        self.stack.append(new_node)
+    def handle_data(self, data):
+        if data.strip():
+            self.stack[-1].data.append(HTMLData(data))
+    def handle_endtag(self, tag):
+        del self.stack[-1]
 
 def parse(text):
     """Parse markdown text.
 
     Returns a tuple of blocks and statics."""
-    pass # TODO
+    html_raw = markdown(text)
+    html = HTMLNode('html', {}, [])
+    html_parser = HTMLTreeLoader(html)
+    html_parser.feed(html_raw)
+    return html
