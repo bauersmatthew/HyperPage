@@ -36,6 +36,9 @@ class Matrix(dict):
         if contents:
             for x, cell in enumerate(contents):
                 self[x, height] = cell
+    def add_rows(self, num):
+        for _ in range(num):
+            self.add_row()
 
     def del_row(self):
         """Remove one row from the end of the matrix."""
@@ -154,3 +157,62 @@ class HRule:
     def draw(self, width):
         mtx = Matrix(width)
         mtx.add_row([RichChar('-', ['hr'])]*width)
+
+class BlockQuote(DocHead):
+    """<blockquote>...</blockquote>"""
+    def draw(self, width):
+        content = super().draw(width-1)
+        mtx = Matrix(width, content.get_h())
+        # add bar on the side
+        for y in range(mtx.get_h()):
+            mtx[0, y] = RichChar('┃', ['bq'])
+        # paste in content
+        mtx.paste(content, 1, 0)
+        return mtx
+
+class List:
+    """List base; <ol> or <ul>"""
+    def __init__(self, tree):
+        self.items = []
+        self.tag = tree.tag
+        # extract each item as a paragraph
+        for branch in tree.data:
+            if branch.tag != 'li':
+                raise RuntimeError('list must only contain li elements!')
+            self.items.append(Par(branch))
+    def draw(self, width):
+        labels = list(self.get_labels())
+        # find string length of largest label
+        req_len = max([len(lbl) for lbl in labels])
+        par_wid = width-req_len
+        mtx = Matrix(width)
+        # add each item
+        for num, item in enumerate(self.items):
+            par_content = item.draw(par_wid)
+            paste_y = mtx.get_h()
+            mtx.add_rows(par_content.get_h()+1)
+            # add labeling
+            for x, c in labels[num]:
+                mtx[x, paste_y] = RichChar(c, [self.tag])
+            # add content
+            mtx.paste(par_content, req_len, paste_y)
+        # remove final spacing line because DocHead adds one anyway
+        mtx.del_row()
+    def get_labels(self):
+        """Overridable. Return a list of labels to be used."""
+        yield from ['']*len(self.items)
+
+class OList(List):
+    """<ol>...</ol>"""
+    def get_labels(self):
+        # get str len of largest number
+        num_len = len(str(len(self.items)))
+        # compose list
+        for n in range(len(self.items)):
+            yield '{{:>{}}}. '.format(num_len).format(n)
+
+class UList(List):
+    """<ul>...</ul>"""
+    def get_labels(self):
+        yield from ['• ']*len(self.items)
+
