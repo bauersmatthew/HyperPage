@@ -29,7 +29,7 @@ def parse(text):
     """Parse markdown text.
 
     Returns a tuple of blocks and statics."""
-    html_raw = markdown(text)
+    html_raw = markdown(text, use_xhtml=True)
     html = HTMLNode('html', {}, [])
     html_parser = HTMLTreeLoader(html)
     html_parser.feed(html_raw)

@@ -42,7 +42,7 @@ class Matrix(dict):
 
     def del_row(self):
         """Remove one row from the end of the matrix."""
-        height = self.get_h()
+        height = self.get_h()-1
         for x in range(self.get_w()):
             del self[x, height]
 
@@ -99,9 +99,10 @@ def parse_rich_chars(tree, attr_stack=[],
                     ch = ' '
                 chars.append(RichChar(ch, copy.copy(attr_stack)))
         else:
-            attr_stack.append(branch.tag)
+            astack_copy = copy.copy(attr_stack)
+            astack_copy.append(branch.tag)
             chars += parse_rich_chars(
-                branch, copy.copy(attr_stack), replace_newlines)
+                branch, astack_copy, replace_newlines)
     return chars
 
 class Par:
@@ -154,7 +155,8 @@ class HRule:
         pass
     def draw(self, width):
         mtx = Matrix(width)
-        mtx.add_row([RichChar('-', ['hr'])]*width)
+        mtx.add_row([RichChar('━', ['hr'])]*width)
+        return mtx
 
 class BlockQuote(DocHead):
     """<blockquote>...</blockquote>"""
@@ -190,12 +192,12 @@ class List:
             paste_y = mtx.get_h()
             mtx.add_rows(par_content.get_h()+1)
             # add labeling
-            for x, c in labels[num]:
+            for x, c in enumerate(labels[num]):
                 mtx[x, paste_y] = RichChar(c, [self.tag])
             # add content
             mtx.paste(par_content, req_len, paste_y)
-        # remove final spacing line because DocHead adds one anyway
-        mtx.del_row()
+            mtx.del_row() # remove spacing lines added by Par
+        return mtx
     def get_labels(self):
         """Overridable. Return a list of labels to be used."""
         yield from ['']*len(self.items)
@@ -207,7 +209,7 @@ class OList(List):
         num_len = len(str(len(self.items)))
         # compose list
         for n in range(len(self.items)):
-            yield '{{:>{}}}. '.format(num_len).format(n)
+            yield '{{:>{}}}. '.format(num_len).format(n+1)
 
 class UList(List):
     """<ul>...</ul>"""
