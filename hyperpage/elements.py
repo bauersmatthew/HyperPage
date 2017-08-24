@@ -26,7 +26,7 @@ class Matrix(dict):
         return self.width
     def get_h(self):
         """Get matrix height."""
-        return len(self)/self.get_w()
+        return len(self)//self.get_w()
 
     def add_row(self, contents=None):
         """Add one row to the end of the matrix."""
@@ -68,8 +68,6 @@ class Matrix(dict):
         for yi in range(other.get_h()):
             for xi in range(other.get_w()):
                 self[x+xi, y+yi] = other[xi, yi]
-
-tag_table = {}
 
 class DocHead:
     """The document head. Contains all other elements."""
@@ -216,3 +214,17 @@ class UList(List):
     def get_labels(self):
         yield from ['• ']*len(self.items)
 
+tag_table = {
+    'p' : Par,
+    'h1' : H1,
+    'h2' : H2,
+    'h3' : H3,
+    'h4' : H4,
+    'h5' : H5,
+    'h6' : H6,
+    'pre' : CodeBlock,
+    'hr' : HRule,
+    'blockquote' : BlockQuote,
+    'ol' : OList,
+    'ul' : UList
+    }
