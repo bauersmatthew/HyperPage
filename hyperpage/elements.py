@@ -10,6 +10,7 @@ import copy
 from collections import namedtuple
 import regex as re
 from math import ceil
+import links
 
 RichChar = namedtuple('RichChar', ('char', 'attrs'))
 
@@ -69,6 +70,23 @@ class Matrix(dict):
             for xi in range(other.get_w()):
                 self[x+xi, y+yi] = other[xi, yi]
 
+    def subset(self, x0, y0, x1, y1):
+        """Get a sub-matrix with the given coords.
+
+        x0 and y0 are inclusive; x1 and y1 are exclusive."""
+        if x1 < x0 or y1 < y0 or x0 < 0 or x1 > self.get_w() or \
+           y0 < 0 or y1 > self.get_h():
+            raise RuntimeError('Invalid subset coordinates.')
+        new = Matrix(x1-x0)
+        for y in range(y1-y0):
+            new.add_row()
+            for x in range(x1-x0):
+                new[x, y] = self[x0+x, y0+y]
+        return new
+
+    def y_slice(self, y0, y1):
+        return self.subset(0, y0, self.get_w(), y1)
+
 class DocHead:
     """The document head. Contains all other elements."""
     def __init__(self, tree):
@@ -103,6 +121,15 @@ def parse_rich_chars(tree, attr_stack=[],
             astack_copy.append(branch.tag)
             chars += parse_rich_chars(
                 branch, astack_copy, replace_newlines)
+            if branch.tag == 'a':
+                # is a link; add to link table
+                link_uid = links.add_link(branch.attrs['href'])
+                hint_stack = copy.copy(astack_copy)+['hint']
+                chars.append(RichChar(' ', astack_copy))
+                chars.append(RichChar('[', hint_stack))
+                for ch in link_uid:
+                    chars.append(RichChar(ch, hint_stack))
+                chars.append(RichChar(']', hint_stack))
     return chars
 
 class Par:
