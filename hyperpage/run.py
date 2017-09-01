@@ -1,10 +1,9 @@
 import elements
 import markdown
 import display
-from time import sleep
-import sys
-from curtsies import Input
 import input
+import settings
+import sys
 
 readme = None
 with open(sys.argv[1]) as fin:
@@ -16,6 +15,7 @@ doc = elements.DocHead(html_tree)
 try:
     display.init()
     input.init()
+    settings.init(sys.argv[2])
 
     display.hold(doc)
 

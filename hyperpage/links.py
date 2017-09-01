@@ -14,6 +14,11 @@ def add_link(addr):
     Addr is the address string (href=addr).
     Returns a UID string (follow hint) for the link."""
     global reg
+    # search for if this destination has been linked before
+    for uid in reg:
+        if reg[uid] == addr:
+            return uid
+    # not linked before
     uid = gen_uid()
     reg[uid] = addr
     return uid

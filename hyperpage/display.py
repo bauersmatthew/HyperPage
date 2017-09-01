@@ -4,6 +4,7 @@ Does not handle input!"""
 
 from curtsies import FullscreenWindow, fsarray
 import curtsies.fmtfuncs as fmt
+import settings
 
 default_style = {
     'em' : fmt.underline,
@@ -110,7 +111,7 @@ def put(mtx):
     global wind
     if mtx.get_h() > wind.height or mtx.get_w() > wind.width:
         raise RuntimeError('Malsized matrix!')
-    render = render_mtx(mtx, default_style)
+    render = render_mtx(mtx, settings.style_attrs)
     wind.render_to_terminal(render)
 
 def render_mtx(mtx, style):
