@@ -11,6 +11,7 @@ from collections import namedtuple
 import regex as re
 from math import ceil
 import links
+import settings
 
 RichChar = namedtuple('RichChar', ('char', 'attrs'))
 
@@ -150,6 +151,30 @@ def Header(num):
     class Hx(Par):
         def __init__(self, tree):
             self.text = parse_rich_chars(tree, attr_stack=['h{}'.format(num)])
+        def draw(self, width):
+            center = 'center' in settings.render_attrs['h{}'.format(num)]
+            if not center:
+                # Par left justifies
+                return super().draw(width)
+            else:
+                ljust_mtx = super().draw(width)
+                # collect all the (non-None) chars in the line.
+                # also empty the line as we go along.
+                y = ljust_mtx.get_h()-1
+                chars = []
+                for x in range(width):
+                    if ljust_mtx[x, y] is None:
+                        break
+                    chars.append(ljust_mtx[x, y])
+                    ljust_mtx[x, y] = None
+                # calculate centered offset
+                x_off = (width - len(chars))//2
+                # add centered chars
+                for x in range(x_off, x_off+len(chars)):
+                    ljust_mtx[x, y] = chars[x-x_off]
+            return ljust_mtx
+                
+                
     Hx.__doc__ = '<h{0}>...</h{0}>'.format(num)
     Hx.__name__ = 'h{}'.format(num)
     return Hx
