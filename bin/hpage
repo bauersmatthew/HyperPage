@@ -15,20 +15,30 @@ def valid_file(s):
 
 DEFAULT_CONFIG_PATH = '~/.config/hyperpage/hyperpage.ini'
 
+class GenerateINI(argparse.Action):
+    def __init__(self, option_strings, dest, **kwargs):
+        super().__init__(option_strings, dest, **kwargs)
+    def __call__(self, parser, namespace, values, option_string=None):
+        sys.stdout.write(settings.default_settings_ini)
+        sys.exit(0)
+
 def main():
     # parse options
     parser = argparse.ArgumentParser(
         description='Display markdown files in the terminal.')
     parser.add_argument('file', metavar='file.md',
-                        type=valid_file,
-                        help='the initial file to be opened.')
+                        type=valid_file, default=None,
+                        help='The initial file to be opened.')
     parser.add_argument('-c', '--config', metavar='config.ini',
                         type=valid_file, default=None,
-                        help=('the config file to use. If unspecified, '
+                        help=('The config file to use. If unspecified, '
                               '{} is used. '
                               'If that is not available, internal defaults '
                               'will be used instead.').format(
                                   DEFAULT_CONFIG_PATH))
+    parser.add_argument('-g', '--generate', nargs=0, action=GenerateINI,
+                        help='Print a default config file to stdout.')
+    
     args = parser.parse_args()
 
     readme = None

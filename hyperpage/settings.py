@@ -3,20 +3,34 @@ import copy
 import curtsies.fmtfuncs as fmt
 import os.path
 from collections import defaultdict
+from io import StringIO
 
-defaults = {
-    'em' : 'underline',
-    'strong' : 'bold',
-    'code' : 'blue',
-    'h1' : 'bold red center',
-    'h2' : 'bold blue',
-    'h3' : 'bold green',
-    'a' : 'underline blue',
-    'hint' : 'on_red'
-}
+default_settings_ini = """
+[HyperPage]
+em = underline
+strong = bold
+code = blue
+h1 = bold red center
+h2 = bold blue
+h3 = bold green
+a = underline blue
+hint = on_red
+
+# unused:
+# h4, h5, h6
+# bq
+# hr
+# ol, ul
+"""
 
 style_attrs = dict()
 render_attrs = defaultdict(list)
+
+def parse_ini(text):
+    """Parse INI text into a dict."""
+    cp = ConfigParser()
+    cp.readfp(StringIO(text))
+    return dict(cp.items('HyperPage'))
 
 def load_ini(path):
     """Load an INI into a dict.
@@ -32,7 +46,7 @@ def init(path=None):
     """Initialize the settings."""
     if path is None:
         path = '~/.config/HyperPage/config.ini'
-    config = defaults
+    config = parse_ini(default_settings_ini)
     if os.path.isfile(path):
         config = load_ini(path)
     rasterize_config(config)
