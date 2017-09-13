@@ -3,7 +3,7 @@ from mistune import markdown
 from html.parser import HTMLParser
 from html import unescape
 from collections import namedtuple
-import elements
+from hyperpage import elements
 
 HTMLDataNT = namedtuple('HTMLData', ('data',))
 HTMLData = lambda d: HTMLDataNT(unescape(d))

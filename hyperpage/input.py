@@ -1,9 +1,9 @@
 from curtsies import Input
 import copy
 import sys
-import links
-import display
-import markdown
+from hyperpage import links
+from hyperpage import display
+from hyperpage import markdown
 
 class ExitException(Exception):
     pass

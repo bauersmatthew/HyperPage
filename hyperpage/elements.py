@@ -10,8 +10,8 @@ import copy
 from collections import namedtuple
 import regex as re
 from math import ceil
-import links
-import settings
+from hyperpage import links
+from hyperpage import settings
 
 RichChar = namedtuple('RichChar', ('char', 'attrs'))
 

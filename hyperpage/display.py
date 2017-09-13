@@ -4,7 +4,7 @@ Does not handle input!"""
 
 from curtsies import FullscreenWindow, fsarray
 import curtsies.fmtfuncs as fmt
-import settings
+from hyperpage import settings
 
 default_style = {
     'em' : fmt.underline,

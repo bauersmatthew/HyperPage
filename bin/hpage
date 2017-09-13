@@ -1,0 +1,59 @@
+from hyperpage import elements
+from hyperpage import markdown
+from hyperpage import display
+from hyperpage import input
+from hyperpage import settings
+import argparse
+import sys
+import os.path
+
+def valid_file(s):
+    if not None and not os.path.isfile(s):
+        raise argparse.ArgumentTypeError(
+            'File \'{}\' is not a valid file.'.format(s))
+    return s
+
+DEFAULT_CONFIG_PATH = '~/.config/hyperpage/hyperpage.ini'
+
+def main():
+    # parse options
+    parser = argparse.ArgumentParser(
+        description='Display markdown files in the terminal.')
+    parser.add_argument('file', metavar='file.md',
+                        type=valid_file,
+                        help='the initial file to be opened.')
+    parser.add_argument('-c', '--config', metavar='config.ini',
+                        type=valid_file, default=None,
+                        help=('the config file to use. If unspecified, '
+                              '{} is used. '
+                              'If that is not available, internal defaults '
+                              'will be used instead.').format(
+                                  DEFAULT_CONFIG_PATH))
+    args = parser.parse_args()
+
+    readme = None
+    with open(args.file) as fin:
+        readme = fin.read()
+        
+    html_tree = markdown.parse(readme)
+    doc = elements.DocHead(html_tree)
+        
+    try:
+        display.init()
+        input.init()
+        settings.init(args.config)
+        
+        display.hold(doc)
+
+        while True:
+            input.handle_next()
+    except input.ExitException:
+        sys.exit(0)
+    except:
+        raise
+    finally:
+        display.exit()
+        input.exit()
+
+if __name__ == '__main__':
+    main()
