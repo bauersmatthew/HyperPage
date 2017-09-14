@@ -1,9 +1,10 @@
-from curtsies import Input
 import copy
 import sys
-from hyperpage import links
+import os.path
+from curtsies import Input
 from hyperpage import display
 from hyperpage import markdown
+from hyperpage import document
 
 class ExitException(Exception):
     pass
@@ -21,12 +22,12 @@ def hdl_scroll(k):
     elif k == 'K':
         dyoff = -5
     elif k == 'g':
-        display.scroll_top()
+        document.current().scroll_top()
         return
     elif k == 'G':
-        display.scroll_bottom()
+        document.current().scroll_bot()
         return
-    display.scroll_delta(dyoff)
+    document.current().scroll_delta(dyoff)
 
 class LinkHandler:
     class FakeReg:
@@ -51,17 +52,19 @@ class LinkHandler:
         self.growing_chain += k
         if k != 'Z':
             # end of the chain
-            addr = links.get_addr(self.growing_chain)
+            addr = document.current().links[self.growing_chain]
             if addr is not None:
-                path = links.resolve_addr(addr)
+                path = addr if os.path.isfile(addr) else None
                 if path is not None:
-                    links.reset()
-                    display.hold(markdown.load(path))
+                    document.load(path)
             self.__exit__(None, None, None)
         else:
             # chain continues
             pass
 link_handler = LinkHandler()
+
+def hdl_back(_):
+    document.go_back()
 
 hdl_reg = {}
 def reg(keys, hdl):
@@ -71,6 +74,7 @@ def reg(keys, hdl):
 reg(('q', 'Q'), hdl_exit)
 reg(('j', 'k', 'J', 'K', 'g', 'G'), hdl_scroll)
 reg(('f',), link_handler.__enter__)
+reg(('H',), hdl_back)
     
 inp_gen = None
 def init():

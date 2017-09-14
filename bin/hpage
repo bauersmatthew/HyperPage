@@ -1,8 +1,7 @@
-from hyperpage import elements
-from hyperpage import markdown
 from hyperpage import display
 from hyperpage import input
 from hyperpage import settings
+from hyperpage import document
 import argparse
 import sys
 import os.path
@@ -41,19 +40,12 @@ def main():
     
     args = parser.parse_args()
 
-    readme = None
-    with open(args.file) as fin:
-        readme = fin.read()
-        
-    html_tree = markdown.parse(readme)
-    doc = elements.DocHead(html_tree)
-        
     try:
         display.init()
         input.init()
         settings.init(args.config)
         
-        display.hold(doc)
+        document.load(args.file)
 
         while True:
             input.handle_next()

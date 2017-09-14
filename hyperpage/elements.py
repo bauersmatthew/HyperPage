@@ -10,8 +10,8 @@ import copy
 from collections import namedtuple
 import regex as re
 from math import ceil
-from hyperpage import links
 from hyperpage import settings
+from hyperpage import document
 
 RichChar = namedtuple('RichChar', ('char', 'attrs'))
 
@@ -124,7 +124,7 @@ def parse_rich_chars(tree, attr_stack=[],
                 branch, astack_copy, replace_newlines)
             if branch.tag == 'a':
                 # is a link; add to link table
-                link_uid = links.add_link(branch.attrs['href'])
+                link_uid = document.current().links.add(branch.attrs['href'])
                 hint_stack = copy.copy(astack_copy)+['hint']
                 chars.append(RichChar(' ', astack_copy))
                 chars.append(RichChar('[', hint_stack))
