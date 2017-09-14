@@ -42,6 +42,15 @@ class LinkRegistry:
             return self.reg[uid]
         return None
 
+def scroll(fun):
+    """Wrap a Document scrolling function."""
+    def f(self, *args, **kwargs):
+        self.update_dims()
+        fun(self, *args, **kwargs)
+        self.fix_scroll()
+        self.draw()
+    return f
+
 class Document:
     """Document generalization."""
     def __init__(self):
@@ -52,49 +61,54 @@ class Document:
         """Attaches this document to a DocHead."""
         self.doc = doc
         self.scroll = 0
-        self.old_w, self.old_h = display.get_dims()
-        self.mtx = self.doc.draw(self.old_w)
+        self.w, self.h = display.get_dims()
+        self.mtx = self.doc.draw(self.w)
         self.draw()
 
-    def draw(self):
-        """Draw to screen."""
+    def update_dims(self):
+        """Update dimensions."""
         w, h = display.get_dims()
-        if w != self.old_w:
+        if w != self.w:
             # re-render matrix
             self.mtx = self.doc.draw(w)
 
             # recalculate the scroll value
-            self.scroll = self.old_w*self.scroll//w
+            self.scroll = self.w*self.scroll//w
             self.fix_scroll()
+        self.w = w
+        self.h = h
 
+    def draw(self):
+        """Draw to screen."""
+        self.update_dims()
         # draw visible region to screen
         ybegin = self.scroll
-        yend = self.scroll + h
+        yend = self.scroll + self.h
         if yend > self.mtx.get_h():
             yend = self.mtx.get_h()
         visible_mtx = self.mtx.y_slice(ybegin, yend)
         display.put(visible_mtx)
 
-        self.old_w = w
-        self.old_h = h
-
     def fix_scroll(self):
         """Check if the scroll is valid; if not, fix it."""
-        max_yoff = self.mtx.get_h() - self.old_h
+        max_yoff = self.mtx.get_h() - self.h
         if self.scroll > max_yoff:
             self.scroll = max_yoff
         elif self.scroll < 0:
             self.scroll = 0
+
+    @scroll
     def scroll_delta(self, delta):
         """Scroll relative to current position."""
         self.scroll += delta
-        self.fix_scroll()
+    @scroll
     def scroll_top(self):
         """Scroll to the top of the document."""
         self.scroll = 0
+    @scroll
     def scroll_bot(self):
         """Scroll to the bottom of the document."""
-        self.scroll = self.mtx.get_h() - self.old_h
+        self.scroll = self.mtx.get_h() - self.h
 
 doc_stack = []
 def current():
