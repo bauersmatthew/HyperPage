@@ -94,7 +94,7 @@ class Document:
         max_yoff = self.mtx.get_h() - self.h
         if self.scroll > max_yoff:
             self.scroll = max_yoff
-        elif self.scroll < 0:
+        if self.scroll < 0:
             self.scroll = 0
 
     @scroll
